@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 #define SETUP_ERROR_HANDLING(cinfo)                                            \
   struct nd_jpegli_error_mgr error_mgr;                                        \
