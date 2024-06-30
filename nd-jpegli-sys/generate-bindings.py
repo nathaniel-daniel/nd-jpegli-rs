@@ -12,6 +12,10 @@ def main():
         '--allowlist-var', 'JPEG_(SUSPENDED|HEADER_OK|HEADER_TABLES_ONLY)',
         '--newtype-enum', 'J_COLOR_SPACE',
         '--newtype-enum', 'J_DCT_METHOD',
+        
+        # Bindgen's layout tests are not cross platform.
+        '--no-layout-tests',
+        
         '-o', 'src/bindings.rs',
         '--',
         '-nostdinc',
