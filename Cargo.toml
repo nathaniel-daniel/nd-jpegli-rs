@@ -1,0 +1,9 @@
+[workspace]
+resolver = "2"
+members = [
+    "nd-jpegli-sys",
+    "nd-jpegli",
+]
+
+[profile.release]
+opt-level = "z"

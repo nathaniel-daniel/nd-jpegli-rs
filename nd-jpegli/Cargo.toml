@@ -1,0 +1,8 @@
+[package]
+name = "nd-jpegli"
+version = "0.0.0"
+edition = "2021"
+
+
+[dependencies]
+nd-jpegli-sys = { path = "../nd-jpegli-sys" }
