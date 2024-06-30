@@ -1,9 +1,9 @@
 #include <lib/jpegli/decode.h>
 #include <lib/jpegli/encode.h>
+#include <setjmp.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <setjmp.h>
 
 #define SETUP_ERROR_HANDLING(cinfo)                                            \
   struct nd_jpegli_error_mgr error_mgr;                                        \
@@ -93,6 +93,25 @@ char *nd_jpegli_start_decompress(j_decompress_ptr cinfo, boolean *ret) {
   *ret = jpegli_start_decompress(cinfo);
 
   return NULL;
+}
+
+/// Read scanlines from a decompress context.
+char *nd_jpegli_read_scanlines(j_decompress_ptr cinfo, JSAMPARRAY scanlines,
+                          JDIMENSION max_lines, JDIMENSION *ret) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  *ret = jpegli_read_scanlines(cinfo, scanlines, max_lines);
+
+  return NULL;
+}
+
+/// Finish decompressing.
+char* nd_jpegli_finish_decompress(j_decompress_ptr cinfo, boolean *ret) {
+    SETUP_ERROR_HANDLING(cinfo);
+    
+    *ret = jpegli_finish_decompress(cinfo);
+    
+    return NULL;
 }
 
 /// Destroy a decompress context.

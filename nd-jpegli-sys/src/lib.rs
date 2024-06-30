@@ -16,6 +16,7 @@ pub use self::bindings::JDIMENSION;
 pub use self::bindings::JPEG_HEADER_OK as JPEGLI_HEADER_OK;
 pub use self::bindings::JPEG_HEADER_TABLES_ONLY as JPEGLI_HEADER_TABLES_ONLY;
 pub use self::bindings::JPEG_SUSPENDED as JPEGLI_SUSPENDED;
+pub use self::bindings::JSAMPARRAY;
 pub use self::bindings::J_COLOR_SPACE;
 pub use self::bindings::J_DCT_METHOD;
 pub use crate::bindings::boolean;
@@ -61,7 +62,33 @@ extern "C" {
     pub fn nd_jpegli_read_header(ctx: j_decompress_ptr, ret: *mut c_uint) -> *mut c_char;
 
     /// Start decompressing.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
     pub fn nd_jpegli_start_decompress(ctx: j_decompress_ptr, ret: *mut boolean) -> *mut c_char;
+
+    /// Read scanlines from a decompress context.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_read_scanlines(
+        ctx: j_decompress_ptr,
+        scanlines: JSAMPARRAY,
+        max_lines: JDIMENSION,
+        ret: *mut JDIMENSION,
+    ) -> *mut c_char;
+
+    /// Finish decompression.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_finish_decompress(ctx: j_decompress_ptr, ret: *mut boolean) -> *mut c_char;
 
     /// Destroy a decompress context.
     pub fn nd_jpegli_destroy_decompress(ctx: j_decompress_ptr);
@@ -112,6 +139,40 @@ mod test {
             assert!(ctx.output_height == 533);
             assert!(ctx.output_components == 3);
             assert!(ctx.out_color_space == J_COLOR_SPACE::JCS_RGB);
+
+            let row_stride = usize::try_from(ctx.output_width).unwrap()
+                * usize::try_from(ctx.output_components).unwrap();
+            let output_height = usize::try_from(ctx.output_height).unwrap();
+            let mut scanline_buffer = vec![0; row_stride * output_height];
+
+            while ctx.output_scanline < ctx.output_height {
+                let output_scanline = usize::try_from(ctx.output_scanline).unwrap();
+                let scanline_buffer = &mut scanline_buffer[(output_scanline * row_stride)..];
+                assert!(scanline_buffer.len() >= row_stride);
+
+                let mut scanlines_read = 0;
+                let err = nd_jpegli_read_scanlines(
+                    &mut ctx,
+                    &mut scanline_buffer.as_mut_ptr(),
+                    1,
+                    &mut scanlines_read,
+                );
+                assert!(err.is_null());
+                assert!(scanlines_read == 1);
+            }
+
+            let mut ret = FALSE;
+            let err = nd_jpegli_finish_decompress(&mut ctx, &mut ret);
+            assert!(err.is_null());
+
+            let mut img = image::RgbImage::from_vec(
+                u32::try_from(ctx.output_width).unwrap(),
+                u32::try_from(ctx.output_height).unwrap(),
+                scanline_buffer,
+            )
+            .unwrap();
+
+            img.save("test-decompress.jpeg").unwrap();
 
             nd_jpegli_destroy_decompress(&mut ctx);
         }
