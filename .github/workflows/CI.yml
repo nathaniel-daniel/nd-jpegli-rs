@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with: 
+          submodules: true
         
       - name: Cache
         uses: actions/cache@v3
@@ -33,6 +35,7 @@ jobs:
         run: cargo clippy --tests --all --all-features -- -D warnings
           
   deny:
+    name: Deny
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,6 +50,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with: 
+          submodules: true
         
       - name: Cache
         uses: actions/cache@v3
