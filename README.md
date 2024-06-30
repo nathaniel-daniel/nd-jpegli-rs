@@ -22,4 +22,6 @@ and the workarounds in place for the Rust bindings will break if used with an ex
  * https://github.com/Automattic/node-canvas/blob/f138b3a667c50935d3e1ffa69ed0fb56f0f2877c/src/Image.cc
  * https://github.com/cloudflare/jpegtran/blob/81d87b4c6ce469031663287b788539d11d5e3b3a/jpeglib.h
  * https://stackoverflow.com/questions/5874215/what-is-rpcndr-h
+ * https://stackoverflow.com/questions/45135/why-does-the-order-in-which-libraries-are-linked-sometimes-cause-errors-in-gcc
+ * https://stackoverflow.com/questions/3735804/undefined-reference-to-operator-new
  

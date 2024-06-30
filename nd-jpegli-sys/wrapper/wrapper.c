@@ -56,6 +56,8 @@ void error_mgr_output_message(j_common_ptr cinfo) {
 
 void error_mgr_emit_message(j_common_ptr cinfo, int msg_level) {
   // TODO: Give control of this to user somehow.
+  (void)cinfo;
+  (void)msg_level;
 }
 
 /// Init a decompress context.

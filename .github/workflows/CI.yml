@@ -10,10 +10,15 @@ name: CI
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with: 
+          submodules: recursive
         
       - name: Cache
         uses: actions/cache@v3
@@ -33,6 +38,7 @@ jobs:
         run: cargo clippy --tests --all --all-features -- -D warnings
           
   deny:
+    name: Deny
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -43,10 +49,15 @@ jobs:
         
   build:
     name: Build
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with: 
+          submodules: recursive
         
       - name: Cache
         uses: actions/cache@v3

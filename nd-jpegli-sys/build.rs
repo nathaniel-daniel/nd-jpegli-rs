@@ -60,9 +60,6 @@ fn main() {
         highway_include_path.join(config.get_profile()).display()
     );
 
-    println!("cargo::rustc-link-lib=jpegli-static");
-    println!("cargo:rustc-link-lib=hwy");
-
     println!("cargo::rerun-if-changed=wrapper/wrapper.c");
     cc::Build::new()
         .include("libjxl")
@@ -70,4 +67,18 @@ fn main() {
         .include(jpegli_include_path)
         .file("wrapper/wrapper.c")
         .compile("nd-jpegli");
+
+    println!("cargo::rustc-link-lib=jpegli-static");
+    println!("cargo::rustc-link-lib=hwy");
+
+    #[cfg(any(target_os = "macos", target_os = "ios", target_os = "freebsd"))]
+    println!("cargo:rustc-link-lib=c++");
+
+    #[cfg(not(any(
+        target_os = "macos",
+        target_os = "ios",
+        target_os = "freebsd",
+        target_env = "msvc"
+    )))]
+    println!("cargo:rustc-link-lib=stdc++");
 }

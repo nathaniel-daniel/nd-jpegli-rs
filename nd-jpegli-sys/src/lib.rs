@@ -7,10 +7,13 @@
 )]
 pub(crate) mod bindings;
 
+pub use self::bindings::boolean;
 pub use self::bindings::j_decompress_ptr;
 pub use self::bindings::jpeg_decompress_struct as jpegli_decompress_struct;
 pub use self::bindings::jpeg_error_mgr as jpegli_error_mgr;
 pub use self::bindings::jpeg_error_mgr__bindgen_ty_1 as jpegli_error_mgr_msg_parm;
+pub use self::bindings::jpeg_memory_mgr as jpegli_memory_manager;
+pub use self::bindings::jpeg_progress_mgr as jpegli_progress_mgr;
 pub use self::bindings::jpeg_source_mgr as jpegli_source_mgr;
 pub use self::bindings::JDIMENSION;
 pub use self::bindings::JPEG_HEADER_OK as JPEGLI_HEADER_OK;
@@ -19,7 +22,6 @@ pub use self::bindings::JPEG_SUSPENDED as JPEGLI_SUSPENDED;
 pub use self::bindings::JSAMPARRAY;
 pub use self::bindings::J_COLOR_SPACE;
 pub use self::bindings::J_DCT_METHOD;
-pub use crate::bindings::boolean;
 pub use core::ffi::c_char;
 pub use core::ffi::c_int;
 pub use core::ffi::c_uint;
