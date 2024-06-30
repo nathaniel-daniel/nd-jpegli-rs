@@ -97,7 +97,7 @@ char *nd_jpegli_start_decompress(j_decompress_ptr cinfo, boolean *ret) {
 
 /// Read scanlines from a decompress context.
 char *nd_jpegli_read_scanlines(j_decompress_ptr cinfo, JSAMPARRAY scanlines,
-                          JDIMENSION max_lines, JDIMENSION *ret) {
+                               JDIMENSION max_lines, JDIMENSION *ret) {
   SETUP_ERROR_HANDLING(cinfo);
 
   *ret = jpegli_read_scanlines(cinfo, scanlines, max_lines);
@@ -106,12 +106,12 @@ char *nd_jpegli_read_scanlines(j_decompress_ptr cinfo, JSAMPARRAY scanlines,
 }
 
 /// Finish decompressing.
-char* nd_jpegli_finish_decompress(j_decompress_ptr cinfo, boolean *ret) {
-    SETUP_ERROR_HANDLING(cinfo);
-    
-    *ret = jpegli_finish_decompress(cinfo);
-    
-    return NULL;
+char *nd_jpegli_finish_decompress(j_decompress_ptr cinfo, boolean *ret) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  *ret = jpegli_finish_decompress(cinfo);
+
+  return NULL;
 }
 
 /// Destroy a decompress context.

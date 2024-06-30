@@ -107,7 +107,7 @@ mod test {
         let buffer = std::fs::read("Plush_bunny_with_headphones.jpg").expect("failed to read file");
 
         unsafe {
-            let mut ctx: MaybeUninit<jpegli_decompress_struct> = std::mem::MaybeUninit::uninit();
+            let mut ctx: MaybeUninit<jpegli_decompress_struct> = std::mem::MaybeUninit::zeroed();
             let err = nd_jpegli_create_decompress(ctx.as_mut_ptr());
             assert!(err.is_null());
 
@@ -165,12 +165,9 @@ mod test {
             let err = nd_jpegli_finish_decompress(&mut ctx, &mut ret);
             assert!(err.is_null());
 
-            let mut img = image::RgbImage::from_vec(
-                u32::try_from(ctx.output_width).unwrap(),
-                u32::try_from(ctx.output_height).unwrap(),
-                scanline_buffer,
-            )
-            .unwrap();
+            let img =
+                image::RgbImage::from_vec(ctx.output_width, ctx.output_height, scanline_buffer)
+                    .unwrap();
 
             img.save("test-decompress.jpeg").unwrap();
 

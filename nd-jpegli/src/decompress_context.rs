@@ -13,7 +13,7 @@ pub struct DecompressContext {
 impl DecompressContext {
     /// Make a new decompress context.
     pub fn new() -> Result<Self, Error> {
-        let mut ctx: MaybeUninit<jpegli_decompress_struct> = std::mem::MaybeUninit::uninit();
+        let mut ctx: MaybeUninit<jpegli_decompress_struct> = std::mem::MaybeUninit::zeroed();
 
         let ctx = unsafe {
             let err_str = nd_jpegli_create_decompress(ctx.as_mut_ptr());
@@ -42,8 +42,7 @@ impl Drop for DecompressContext {
                 let _client_data: Box<ClientData> = Box::from_raw(client_data_ptr.cast());
             }
 
-            let err_str = nd_jpegli_destroy_decompress(&mut self.ctx);
-            let _err_str = ErrorString::from_ptr(err_str);
+            nd_jpegli_destroy_decompress(&mut self.ctx);
         }
     }
 }

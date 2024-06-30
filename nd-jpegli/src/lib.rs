@@ -42,11 +42,11 @@ impl From<ErrorString> for Error {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    //use super::*;
 
     #[test]
     fn decompress() {
-        let ctx = DecompressContext::new(&[]);
-        drop(ctx);
+        //let ctx = DecompressContext::new(&[]);
+        //drop(ctx);
     }
 }

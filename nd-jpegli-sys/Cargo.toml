@@ -3,6 +3,7 @@ name = "nd-jpegli-sys"
 version = "0.0.0"
 edition = "2021"
 build = "build.rs"
+license = "BSD-3-Clause"
 
 [dev-dependencies]
 image = { version = "0.25.1", features = [ "jpeg" ], default-features = false }
