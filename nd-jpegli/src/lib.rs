@@ -95,11 +95,37 @@ mod test {
 
         ctx.start_decompress()
             .expect("failed to start decompression");
-        assert!(ctx.output_width() == Some(800));
-        assert!(ctx.output_height() == Some(533));
+        let output_width = ctx.output_width().expect("missing output width");
+        let output_height = ctx.output_height().expect("missing output height");
+        let output_components = ctx.output_components().expect("missing output components");
+        assert!(output_width == 800);
+        assert!(output_height == 533);
         assert!(ctx.output_color_space() == Some(ColorSpace::Rgb));
         assert!(ctx.output_components() == Some(3));
 
+        let row_stride =
+            usize::try_from(output_width).unwrap() * usize::try_from(output_components).unwrap();
+        let output_height_usize = usize::try_from(output_height).unwrap();
+        let mut scanline_buffer = vec![0; row_stride * output_height_usize];
+
+        loop {
+            let output_scanline = ctx.output_scanline().expect("failed to get scanline");
+            if output_scanline >= output_height {
+                break;
+            }
+
+            let output_scanline = usize::try_from(output_scanline).unwrap();
+            let scanline_buffer = &mut scanline_buffer[(output_scanline * row_stride)..];
+            assert!(scanline_buffer.len() >= row_stride);
+
+            ctx.read_scanlines(&mut [scanline_buffer])
+                .expect("failed to read scanlines");
+        }
+
         drop(ctx);
+
+        let img = image::RgbImage::from_vec(output_width, output_height, scanline_buffer).unwrap();
+
+        img.save("test-decompress.jpeg").unwrap();
     }
 }

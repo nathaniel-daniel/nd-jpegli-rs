@@ -6,3 +6,7 @@ license = "BSD-3-Clause"
 
 [dependencies]
 nd-jpegli-sys = { path = "../nd-jpegli-sys", features = [ "__private_nd_jpegli_rs" ] }
+smallvec = "1.13.2"
+
+[dev-dependencies]
+image = { version = "0.25.1", features = [ "jpeg" ], default-features = false }

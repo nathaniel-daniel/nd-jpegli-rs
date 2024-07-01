@@ -5,16 +5,19 @@ use core::ffi::c_void;
 use nd_jpegli_sys::__private_nd_jpegli_rs::nd_jpegli_create_err_str;
 use nd_jpegli_sys::__private_nd_jpegli_rs::nd_jpegli_rust_src;
 use nd_jpegli_sys::c_char;
+use nd_jpegli_sys::c_uint;
 use nd_jpegli_sys::j_decompress_ptr;
 use nd_jpegli_sys::jpegli_decompress_struct;
 use nd_jpegli_sys::nd_jpegli_create_decompress;
 use nd_jpegli_sys::nd_jpegli_destroy_decompress;
 use nd_jpegli_sys::nd_jpegli_read_header;
+use nd_jpegli_sys::nd_jpegli_read_scanlines;
 use nd_jpegli_sys::nd_jpegli_start_decompress;
 use nd_jpegli_sys::FALSE;
 use nd_jpegli_sys::JPEGLI_HEADER_OK;
 use nd_jpegli_sys::JPEG_EOI;
 use nd_jpegli_sys::TRUE;
+use smallvec::SmallVec;
 use std::io::Read;
 use std::marker::PhantomData;
 use std::mem::MaybeUninit;
@@ -188,6 +191,54 @@ where
         Ok(())
     }
 
+    /// Read scanlines into a list of scanlines.
+    pub fn read_scanlines(&mut self, scanlines: &mut [&mut [u8]]) -> Result<u32, Error> {
+        if self.state != State::StartDecompress {
+            return Err(Error::Api("cannot call from this state"));
+        }
+
+        let num_scanlines = match c_uint::try_from(scanlines.len()) {
+            Ok(num_scanlines) => num_scanlines,
+            Err(_error) => {
+                return Err(Error::Api("scanline buffer buffer too large"));
+            }
+        };
+
+        let row_stride = usize::try_from(self.ctx.output_width).unwrap()
+            * usize::try_from(self.ctx.output_components).unwrap();
+
+        let mut scanlines_arg: SmallVec<[*mut u8; 32]> = SmallVec::with_capacity(scanlines.len());
+        for scanline in scanlines.iter_mut() {
+            if scanline.len() < row_stride {
+                return Err(Error::Api("a scanline buffer was too small"));
+            }
+            scanlines_arg.push(scanline.as_mut_ptr());
+        }
+
+        let mut scanlines_read = 0;
+        unsafe {
+            let err_str = nd_jpegli_read_scanlines(
+                &mut self.ctx,
+                scanlines_arg.as_mut_ptr(),
+                num_scanlines,
+                &mut scanlines_read,
+            );
+            let err_str = ErrorString::from_ptr(err_str);
+            if let Some(err_str) = err_str {
+                self.state = State::Error;
+                return Err(err_str.into());
+            }
+        }
+
+        if scanlines_read == 0 {
+            self.state = State::Error;
+            return Err(Error::Api("source suspension is not supported"));
+        }
+
+        #[allow(clippy::useless_conversion)]
+        Ok(u32::try_from(scanlines_read).unwrap())
+    }
+
     /// Read the input width.
     pub fn input_width(&self) -> Option<u32> {
         if !matches!(self.state, State::Header | State::StartDecompress) {
@@ -245,6 +296,7 @@ where
             return None;
         }
 
+        #[allow(clippy::useless_conversion)]
         Some(u32::try_from(self.ctx.output_width).unwrap())
     }
 
@@ -254,6 +306,7 @@ where
             return None;
         }
 
+        #[allow(clippy::useless_conversion)]
         Some(u32::try_from(self.ctx.output_height).unwrap())
     }
 
@@ -286,6 +339,16 @@ where
         }
 
         Some(ColorSpace::from(self.ctx.out_color_space))
+    }
+
+    /// Read the number of scanlines this library has returned.
+    pub fn output_scanline(&self) -> Option<u32> {
+        if !matches!(self.state, State::StartDecompress) {
+            return None;
+        }
+
+        #[allow(clippy::useless_conversion)]
+        Some(u32::try_from(self.ctx.output_scanline).unwrap())
     }
 }
 
