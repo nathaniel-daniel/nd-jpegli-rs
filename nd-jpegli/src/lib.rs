@@ -103,8 +103,7 @@ mod test {
         assert!(ctx.output_color_space() == Some(ColorSpace::Rgb));
         assert!(ctx.output_components() == Some(3));
 
-        let row_stride =
-            usize::try_from(output_width).unwrap() * usize::try_from(output_components).unwrap();
+        let row_stride = usize::try_from(output_width).unwrap() * usize::from(output_components);
         let output_height_usize = usize::try_from(output_height).unwrap();
         let mut scanline_buffer = vec![0; row_stride * output_height_usize];
 
