@@ -5,8 +5,8 @@ def main():
         [
             'clang-format',
             '-i',
-            '*.c',
-            '*.h',
+            'c/*.c',
+            # 'c/*.h',
         ],
         check=True,
     )
