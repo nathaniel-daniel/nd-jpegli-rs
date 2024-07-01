@@ -1,5 +1,7 @@
 fn main() {
     println!("cargo:rerun-if-env-changed=CMAKE_GENERATOR");
+    println!("cargo::rerun-if-changed=wrapper/wrapper.c");
+    println!("cargo::rerun-if-changed=wrapper/nd_jpegli_rs.c");
 
     let mut config = cmake::Config::new("libjxl");
 
@@ -60,19 +62,19 @@ fn main() {
         highway_include_path.join(config.get_profile()).display()
     );
 
-    println!("cargo::rerun-if-changed=wrapper/wrapper.c");
-    cc::Build::new()
+    let mut build = cc::Build::new();
+    build
         .include("libjxl")
         .include("libjxl/third_party/libjpeg-turbo")
-        .include(jpegli_include_path)
-        .file("wrapper/wrapper.c")
-        .compile("nd-jpegli");
+        .include(&jpegli_include_path)
+        .file("wrapper/wrapper.c");
+    build.compile("nd-jpegli");
 
     println!("cargo::rustc-link-lib=jpegli-static");
     println!("cargo::rustc-link-lib=hwy");
 
     #[cfg(any(target_os = "macos", target_os = "ios", target_os = "freebsd"))]
-    println!("cargo:rustc-link-lib=c++");
+    println!("cargo::rustc-link-lib=c++");
 
     #[cfg(not(any(
         target_os = "macos",
@@ -80,5 +82,25 @@ fn main() {
         target_os = "freebsd",
         target_env = "msvc"
     )))]
-    println!("cargo:rustc-link-lib=stdc++");
+    println!("cargo::rustc-link-lib=stdc++");
+
+    let current_dir = std::env::current_dir().expect("failed to get current_dir");
+    println!(
+        "cargo::metadata=include_libjxl={}",
+        current_dir.join("libjxl").display()
+    );
+    println!(
+        "cargo::metadata=include_libjpeg_turbo={}",
+        current_dir
+            .join("libjxl/third_party/libjpeg-turbo")
+            .display()
+    );
+    println!(
+        "cargo::metadata=include_jpegli={}",
+        jpegli_include_path.display()
+    );
+    println!(
+        "cargo::metadata=include_nd_jpegli_wrapper={}",
+        current_dir.join("wrapper").display()
+    );
 }

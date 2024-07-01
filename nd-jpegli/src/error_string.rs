@@ -3,7 +3,6 @@ use std::borrow::Cow;
 use std::ptr::NonNull;
 
 /// An error string.
-#[derive(Debug)]
 pub struct ErrorString {
     ptr: NonNull<c_char>,
     len: usize,
@@ -53,6 +52,22 @@ impl ErrorString {
     /// Try to get the error string as a utf8 string, lossily.
     pub fn to_string_lossy(&self) -> Cow<'_, str> {
         String::from_utf8_lossy(self.as_bytes())
+    }
+}
+
+impl std::fmt::Debug for ErrorString {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "\"")?;
+        for chunk in self.as_bytes().utf8_chunks() {
+            write!(f, "{}", chunk.valid())?;
+
+            for _ in chunk.invalid() {
+                write!(f, "\u{FFFD}")?;
+            }
+        }
+        write!(f, "\"")?;
+
+        Ok(())
     }
 }
 

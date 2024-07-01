@@ -1,30 +1,6 @@
-#include <lib/jpegli/decode.h>
-#include <lib/jpegli/encode.h>
-#include <setjmp.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include "wrapper.h"
+#include <assert.h>
 #include <string.h>
-
-#define SETUP_ERROR_HANDLING(cinfo)                                            \
-  struct nd_jpegli_error_mgr error_mgr;                                        \
-  error_mgr.err_str = NULL;                                                    \
-  cinfo->err = jpegli_std_error(&error_mgr.pub);                               \
-  error_mgr.pub.error_exit = error_mgr_error_exit;                             \
-  error_mgr.pub.output_message = error_mgr_output_message;                     \
-  error_mgr.pub.emit_message = error_mgr_emit_message;                         \
-  if (setjmp(error_mgr.setjmp_buffer)) {                                       \
-    return error_mgr.err_str;                                                  \
-  }
-
-#define ND_JPEGLI_ERR_MSG_MAX_SIZE JMSG_LENGTH_MAX
-
-struct nd_jpegli_error_mgr {
-  struct jpeg_error_mgr pub;
-  jmp_buf setjmp_buffer;
-  char *volatile err_str;
-};
-
-typedef struct nd_jpegli_error_mgr *nd_jpegli_error_mgr_ptr;
 
 void error_mgr_error_exit(j_common_ptr cinfo) {
   nd_jpegli_error_mgr_ptr error_mgr = (nd_jpegli_error_mgr_ptr)cinfo->err;
@@ -44,11 +20,7 @@ void error_mgr_output_message(j_common_ptr cinfo) {
 
   // Allocate buffer
   char *new_err_str = malloc(ND_JPEGLI_ERR_MSG_MAX_SIZE);
-  if (new_err_str == NULL) {
-    // Failed to allocate string buffer.
-    // There isn't a lot we can do here.
-    return;
-  }
+  assert(new_err_str != NULL);
 
   (*cinfo->err->format_message)(cinfo, new_err_str);
   error_mgr->err_str = new_err_str;

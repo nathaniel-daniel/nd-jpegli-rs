@@ -6,6 +6,7 @@ def main():
             'clang-format',
             '-i',
             'wrapper/*.c',
+            'wrapper/*.h',
         ],
         check=True,
     )

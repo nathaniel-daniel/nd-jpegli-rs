@@ -27,6 +27,7 @@ pub use core::ffi::c_int;
 pub use core::ffi::c_uint;
 pub use core::ffi::c_ulong;
 
+pub const JPEG_EOI: u8 = 0xD9;
 pub const FALSE: boolean = 0;
 pub const TRUE: boolean = 1;
 
