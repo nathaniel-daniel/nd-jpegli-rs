@@ -7,10 +7,6 @@
 )]
 pub(crate) mod bindings;
 
-#[doc(hidden)]
-#[cfg(feature = "__private_nd_jpegli_rs")]
-pub mod __private_nd_jpegli_rs;
-
 pub use self::bindings::boolean;
 pub use self::bindings::j_decompress_ptr;
 pub use self::bindings::jpeg_decompress_struct as jpegli_decompress_struct;

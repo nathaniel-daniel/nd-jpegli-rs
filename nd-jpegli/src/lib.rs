@@ -1,3 +1,4 @@
+mod c_bindings;
 mod decompress_context;
 mod error_string;
 

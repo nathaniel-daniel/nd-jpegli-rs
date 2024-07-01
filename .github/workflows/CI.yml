@@ -35,7 +35,7 @@ jobs:
         run: cargo fmt -- --check --color always
           
       - name: Clippy
-        run: cargo clippy --tests --all --all-features -- -D warnings
+        run: cargo clippy --all-targets --all --all-features -- -D warnings
           
   deny:
     name: Deny
@@ -71,7 +71,7 @@ jobs:
           key: ${{ runner.os }}-build-cargo-${{ hashFiles('**/Cargo.lock') }}
         
       - name: Build
-        run: cargo build --all --verbose
+        run: cargo build --all-targets --workspace --verbose
         
       - name: Run Tests
-        run: cargo test --all --verbose
+        run: cargo test --all-targets --workspace --verbose

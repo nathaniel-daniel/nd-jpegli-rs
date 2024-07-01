@@ -3,6 +3,7 @@ name = "nd-jpegli-sys"
 version = "0.0.0"
 edition = "2021"
 build = "build.rs"
+links = "jpegli-static"
 license = "BSD-3-Clause"
 
 [dev-dependencies]
@@ -14,4 +15,3 @@ cmake = "0.1.50"
 
 [features]
 default = []
-__private_nd_jpegli_rs = []

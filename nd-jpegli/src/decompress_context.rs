@@ -1,9 +1,9 @@
+use crate::c_bindings::nd_jpegli_create_err_str;
+use crate::c_bindings::nd_jpegli_rust_src;
 use crate::ColorSpace;
 use crate::Error;
 use crate::ErrorString;
 use core::ffi::c_void;
-use nd_jpegli_sys::__private_nd_jpegli_rs::nd_jpegli_create_err_str;
-use nd_jpegli_sys::__private_nd_jpegli_rs::nd_jpegli_rust_src;
 use nd_jpegli_sys::c_char;
 use nd_jpegli_sys::c_uint;
 use nd_jpegli_sys::j_decompress_ptr;

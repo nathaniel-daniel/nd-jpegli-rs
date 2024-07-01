@@ -3,10 +3,14 @@ name = "nd-jpegli"
 version = "0.0.0"
 edition = "2021"
 license = "BSD-3-Clause"
+build = "build.rs"
 
 [dependencies]
-nd-jpegli-sys = { path = "../nd-jpegli-sys", features = [ "__private_nd_jpegli_rs" ] }
+nd-jpegli-sys = { path = "../nd-jpegli-sys" }
 smallvec = "1.13.2"
 
 [dev-dependencies]
 image = { version = "0.25.1", features = [ "jpeg" ], default-features = false }
+
+[build-dependencies]
+cc = "1.0.103"
