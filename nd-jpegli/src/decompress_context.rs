@@ -10,9 +10,11 @@ use nd_jpegli_sys::jpegli_decompress_struct;
 use nd_jpegli_sys::nd_jpegli_create_decompress;
 use nd_jpegli_sys::nd_jpegli_destroy_decompress;
 use nd_jpegli_sys::nd_jpegli_read_header;
+use nd_jpegli_sys::nd_jpegli_start_decompress;
+use nd_jpegli_sys::FALSE;
 use nd_jpegli_sys::JPEGLI_HEADER_OK;
 use nd_jpegli_sys::JPEG_EOI;
-use nd_jpegli_sys::J_COLOR_SPACE;
+use nd_jpegli_sys::TRUE;
 use std::io::Read;
 use std::marker::PhantomData;
 use std::mem::MaybeUninit;
@@ -68,10 +70,11 @@ pub extern "C" fn nd_jpegli_rust_src_fill_input_buffer_rs(ctx: j_decompress_ptr)
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum State {
     Initial,
     Header,
+    StartDecompress,
     Error,
 }
 
@@ -159,51 +162,130 @@ where
         Ok(())
     }
 
-    /// Read the image width.
-    pub fn image_width(&self) -> Option<u32> {
-        #[allow(clippy::useless_conversion)]
-        match self.state {
-            State::Header => Some(u32::try_from(self.ctx.image_width).unwrap()),
-            _ => None,
-        }
-    }
-
-    /// Read the image height.
-    pub fn image_height(&self) -> Option<u32> {
-        #[allow(clippy::useless_conversion)]
-        match self.state {
-            State::Header => Some(u32::try_from(self.ctx.image_height).unwrap()),
-            _ => None,
-        }
-    }
-
-    // Read the image width and height.
-    pub fn image_dimensions(&self) -> Option<(u32, u32)> {
-        #[allow(clippy::useless_conversion)]
-        match self.state {
-            State::Header => Some((
-                u32::try_from(self.ctx.image_width).unwrap(),
-                u32::try_from(self.ctx.image_height).unwrap(),
-            )),
-            _ => None,
-        }
-    }
-
-    /// Read the color space.
-    pub fn jpeg_color_space(&self) -> Option<ColorSpace> {
+    /// Start decompression.
+    pub fn start_decompress(&mut self) -> Result<(), Error> {
         if self.state != State::Header {
+            return Err(Error::Api("cannot call from this state"));
+        }
+
+        let mut ret = FALSE;
+        unsafe {
+            let err_str = nd_jpegli_start_decompress(&mut self.ctx, &mut ret);
+            let err_str = ErrorString::from_ptr(err_str);
+            if let Some(err_str) = err_str {
+                self.state = State::Error;
+                return Err(err_str.into());
+            }
+        }
+
+        if ret != TRUE {
+            self.state = State::Error;
+            return Err(Error::Unsupported("source suspension is not supported"));
+        }
+
+        self.state = State::StartDecompress;
+
+        Ok(())
+    }
+
+    /// Read the input width.
+    pub fn input_width(&self) -> Option<u32> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
             return None;
         }
 
-        match self.ctx.jpeg_color_space {
-            J_COLOR_SPACE::JCS_UNKNOWN => Some(ColorSpace::Unknown),
-            J_COLOR_SPACE::JCS_GRAYSCALE => Some(ColorSpace::Luma),
-            J_COLOR_SPACE::JCS_RGB => Some(ColorSpace::Rgb),
-            J_COLOR_SPACE::JCS_YCbCr => Some(ColorSpace::YCbCr),
-            J_COLOR_SPACE::JCS_CMYK => Some(ColorSpace::Cmyk),
-            J_COLOR_SPACE::JCS_YCCK => Some(ColorSpace::Ycck),
-            _ => Some(ColorSpace::Unknown),
+        #[allow(clippy::useless_conversion)]
+        Some(u32::try_from(self.ctx.image_width).unwrap())
+    }
+
+    /// Read the input height.
+    pub fn input_height(&self) -> Option<u32> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
+            return None;
         }
+
+        #[allow(clippy::useless_conversion)]
+        Some(u32::try_from(self.ctx.image_height).unwrap())
+    }
+
+    // Read the input width and height.
+    pub fn input_dimensions(&self) -> Option<(u32, u32)> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
+            return None;
+        }
+
+        #[allow(clippy::useless_conversion)]
+        Some((
+            u32::try_from(self.ctx.image_width).unwrap(),
+            u32::try_from(self.ctx.image_height).unwrap(),
+        ))
+    }
+
+    /// Read input the color space.
+    pub fn input_color_space(&self) -> Option<ColorSpace> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
+            return None;
+        }
+
+        Some(ColorSpace::from(self.ctx.jpeg_color_space))
+    }
+
+    /// Read the # of components in the input colorspace.
+    pub fn input_components(&self) -> Option<u8> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
+            return None;
+        }
+
+        Some(u8::try_from(self.ctx.num_components).unwrap())
+    }
+
+    /// Read the output width.
+    pub fn output_width(&self) -> Option<u32> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
+            return None;
+        }
+
+        Some(u32::try_from(self.ctx.output_width).unwrap())
+    }
+
+    /// Read the output height.
+    pub fn output_height(&self) -> Option<u32> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
+            return None;
+        }
+
+        Some(u32::try_from(self.ctx.output_height).unwrap())
+    }
+
+    /// Read the output dimensions.
+    pub fn output_dimensions(&self) -> Option<(u32, u32)> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
+            return None;
+        }
+
+        #[allow(clippy::useless_conversion)]
+        Some((
+            u32::try_from(self.ctx.output_width).unwrap(),
+            u32::try_from(self.ctx.output_height).unwrap(),
+        ))
+    }
+
+    /// Read the # of components in the output colorspace.
+    pub fn output_components(&self) -> Option<u8> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
+            return None;
+        }
+
+        Some(u8::try_from(self.ctx.output_components).unwrap())
+    }
+
+    /// Read the output color space.
+    pub fn output_color_space(&self) -> Option<ColorSpace> {
+        if !matches!(self.state, State::Header | State::StartDecompress) {
+            return None;
+        }
+
+        Some(ColorSpace::from(self.ctx.out_color_space))
     }
 }
 

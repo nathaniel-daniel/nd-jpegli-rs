@@ -5,6 +5,7 @@ pub use self::decompress_context::DecompressContext;
 pub use self::decompress_context::ReadSource;
 pub use self::decompress_context::Source;
 pub use self::error_string::ErrorString;
+use nd_jpegli_sys::J_COLOR_SPACE;
 
 /// An error that may occur while using this library.
 #[derive(Debug)]
@@ -60,6 +61,20 @@ pub enum ColorSpace {
     Unknown,
 }
 
+impl From<J_COLOR_SPACE> for ColorSpace {
+    fn from(color_space: J_COLOR_SPACE) -> Self {
+        match color_space {
+            J_COLOR_SPACE::JCS_UNKNOWN => ColorSpace::Unknown,
+            J_COLOR_SPACE::JCS_GRAYSCALE => ColorSpace::Luma,
+            J_COLOR_SPACE::JCS_RGB => ColorSpace::Rgb,
+            J_COLOR_SPACE::JCS_YCbCr => ColorSpace::YCbCr,
+            J_COLOR_SPACE::JCS_CMYK => ColorSpace::Cmyk,
+            J_COLOR_SPACE::JCS_YCCK => ColorSpace::Ycck,
+            _ => ColorSpace::Unknown,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -72,10 +87,18 @@ mod test {
 
         let mut ctx = DecompressContext::new(read_source).expect("failed to create context");
         ctx.read_header().expect("failed to read headers");
-        let image_dimensions = ctx.image_dimensions().expect("missing dimensions");
-        let color_space = ctx.jpeg_color_space().expect("missing color space");
-        assert!(image_dimensions == (800, 533));
-        assert!(color_space == ColorSpace::YCbCr);
+        assert!(ctx.input_width() == Some(800));
+        assert!(ctx.input_height() == Some(533));
+        assert!(ctx.input_dimensions() == Some((800, 533)));
+        assert!(ctx.input_color_space() == Some(ColorSpace::YCbCr));
+        assert!(ctx.input_components() == Some(3));
+
+        ctx.start_decompress()
+            .expect("failed to start decompression");
+        assert!(ctx.output_width() == Some(800));
+        assert!(ctx.output_height() == Some(533));
+        assert!(ctx.output_color_space() == Some(ColorSpace::Rgb));
+        assert!(ctx.output_components() == Some(3));
 
         drop(ctx);
     }
