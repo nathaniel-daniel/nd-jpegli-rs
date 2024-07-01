@@ -11,3 +11,7 @@ image = { version = "0.25.1", features = [ "jpeg" ], default-features = false }
 [build-dependencies]
 cc = "1.0.102"
 cmake = "0.1.50"
+
+[features]
+default = []
+__private_nd_jpegli_rs = []

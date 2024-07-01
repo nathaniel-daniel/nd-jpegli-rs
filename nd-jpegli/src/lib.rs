@@ -1,8 +1,10 @@
 mod decompress_context;
 mod error_string;
 
+pub use self::decompress_context::DecompressContext;
+pub use self::decompress_context::ReadSource;
+pub use self::decompress_context::Source;
 pub use self::error_string::ErrorString;
-pub use crate::decompress_context::DecompressContext;
 
 /// An error that may occur while using this library.
 #[derive(Debug)]
@@ -14,6 +16,11 @@ pub enum Error {
     ///
     /// You, as the programmer, did something wrong.
     Api(&'static str),
+
+    /// Encountered something that is currently unsupported.
+    ///
+    /// Feel free to open a bug.
+    Unsupported(&'static str),
 }
 
 impl std::fmt::Display for Error {
@@ -21,6 +28,7 @@ impl std::fmt::Display for Error {
         match self {
             Self::Jpegli(_error) => write!(f, "jpegli error"),
             Self::Api(error) => write!(f, "api error (\"{error}\")"),
+            Self::Unsupported(error) => write!(f, "unsupported error (\"{error}\")"),
         }
     }
 }
@@ -40,13 +48,35 @@ impl From<ErrorString> for Error {
     }
 }
 
+/// The color space of a jpeg
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum ColorSpace {
+    Luma,
+    Rgb,
+    YCbCr,
+    Cmyk,
+    Ycck,
+
+    Unknown,
+}
+
 #[cfg(test)]
 mod test {
-    //use super::*;
+    use super::*;
 
     #[test]
     fn decompress() {
-        //let ctx = DecompressContext::new(&[]);
-        //drop(ctx);
+        let file =
+            std::fs::File::open("Plush_bunny_with_headphones.jpg").expect("failed to open file");
+        let read_source = ReadSource::new(file);
+
+        let mut ctx = DecompressContext::new(read_source).expect("failed to create context");
+        ctx.read_header().expect("failed to read headers");
+        let image_dimensions = ctx.image_dimensions().expect("missing dimensions");
+        let color_space = ctx.jpeg_color_space().expect("missing color space");
+        assert!(image_dimensions == (800, 533));
+        assert!(color_space == ColorSpace::YCbCr);
+
+        drop(ctx);
     }
 }

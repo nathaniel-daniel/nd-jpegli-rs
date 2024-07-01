@@ -5,4 +5,4 @@ edition = "2021"
 license = "BSD-3-Clause"
 
 [dependencies]
-nd-jpegli-sys = { path = "../nd-jpegli-sys" }
+nd-jpegli-sys = { path = "../nd-jpegli-sys", features = [ "__private_nd_jpegli_rs" ] }

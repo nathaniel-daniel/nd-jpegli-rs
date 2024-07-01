@@ -1,5 +1,7 @@
 fn main() {
     println!("cargo:rerun-if-env-changed=CMAKE_GENERATOR");
+    println!("cargo::rerun-if-changed=wrapper/wrapper.c");
+    println!("cargo::rerun-if-changed=wrapper/nd_jpegli_rs.c");
 
     let mut config = cmake::Config::new("libjxl");
 
@@ -60,13 +62,16 @@ fn main() {
         highway_include_path.join(config.get_profile()).display()
     );
 
-    println!("cargo::rerun-if-changed=wrapper/wrapper.c");
-    cc::Build::new()
+    let mut build = cc::Build::new();
+    build
         .include("libjxl")
         .include("libjxl/third_party/libjpeg-turbo")
         .include(jpegli_include_path)
-        .file("wrapper/wrapper.c")
-        .compile("nd-jpegli");
+        .file("wrapper/wrapper.c");
+    if cfg!(feature = "__private_nd_jpegli_rs") {
+        build.file("wrapper/nd_jpegli_rs.c");
+    }
+    build.compile("nd-jpegli");
 
     println!("cargo::rustc-link-lib=jpegli-static");
     println!("cargo::rustc-link-lib=hwy");
