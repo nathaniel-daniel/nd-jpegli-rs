@@ -24,4 +24,5 @@ and the workarounds in place for the Rust bindings will break if used with an ex
  * https://stackoverflow.com/questions/5874215/what-is-rpcndr-h
  * https://stackoverflow.com/questions/45135/why-does-the-order-in-which-libraries-are-linked-sometimes-cause-errors-in-gcc
  * https://stackoverflow.com/questions/3735804/undefined-reference-to-operator-new
+ * https://stackoverflow.com/questions/45047508/error-unknown-type-name-constexpr-during-make-in-mac-os-x
  

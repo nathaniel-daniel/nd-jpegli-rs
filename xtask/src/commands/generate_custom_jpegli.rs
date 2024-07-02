@@ -152,7 +152,7 @@ pub fn exec(metadata: cargo_metadata::Metadata, _options: Options) -> anyhow::Re
                 .with_context(|| format!("failed to create \"{parent}\""))?;
         }
 
-        std::fs::copy(&input_path, &output_path)?;
+        std::fs::copy(input_path, &output_path)?;
     }
 
     let mut jpegli_src_files = Vec::new();
@@ -378,7 +378,7 @@ fn copy_rewrite(input_path: Utf8PathBuf, output_path: Utf8PathBuf) -> anyhow::Re
 
         // #include "{file}" || #include "{file}"
         if let Some(file) = line.strip_prefix("#include").and_then(|line| {
-            let line = line.trim_start_matches(" ");
+            let line = line.trim_start_matches(' ');
             let line = line.strip_prefix('"')?;
             let end_index = line.as_bytes().iter().position(|b| *b == b'"')?;
 
@@ -394,7 +394,7 @@ fn copy_rewrite(input_path: Utf8PathBuf, output_path: Utf8PathBuf) -> anyhow::Re
         if let Some(file) = line
             .strip_prefix("#define HWY_TARGET_INCLUDE")
             .and_then(|line| {
-                let line = line.trim_start_matches(" ");
+                let line = line.trim_start_matches(' ');
                 let line = line.strip_prefix('"')?;
                 let end_index = line.as_bytes().iter().position(|b| *b == b'"')?;
 
