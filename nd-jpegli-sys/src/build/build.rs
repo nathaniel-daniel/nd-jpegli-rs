@@ -13,7 +13,10 @@ fn main() {
 
     // Build highway
     let mut build = cc::Build::new();
-    build.include(BASE_DIR).include(INCLUDE_DIR);
+    build
+        .cargo_warnings(false)
+        .include(BASE_DIR)
+        .include(INCLUDE_DIR);
     for src in HIGHWAY_SRCS {
         build.file(src);
     }
@@ -22,6 +25,7 @@ fn main() {
     // Build jpegli
     let mut build = cc::Build::new();
     build
+        .cargo_warnings(false)
         .include(BASE_DIR)
         .include(INCLUDE_DIR)
         .include(JPEGLI_INCLUDE_DIR);
