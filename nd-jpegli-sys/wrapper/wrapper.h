@@ -2,8 +2,8 @@
 #define __ND_JPEGLI_WRAPPER__
 
 #include <assert.h>
-#include <lib/jpegli/decode.h>
-#include <lib/jpegli/encode.h>
+#include <jpegli/decode.h>
+#include <jpegli/encode.h>
 #include <setjmp.h>
 #include <stdlib.h>
 

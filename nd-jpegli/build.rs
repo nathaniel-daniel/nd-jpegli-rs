@@ -1,4 +1,6 @@
 fn main() {
+    println!("cargo::rerun-if-changed=c/nd_jpegli_rs.c");
+
     let include_libjxl =
         std::env::var("DEP_JPEGLI_STATIC_INCLUDE_LIBJXL").expect("missing libjxl include dir");
     let include_libjpeg_turbo = std::env::var("DEP_JPEGLI_STATIC_INCLUDE_LIBJPEG_TURBO")

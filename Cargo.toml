@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "nd-jpegli-sys",
     "nd-jpegli",
+    "xtask",
 ]
 
 [profile.release]

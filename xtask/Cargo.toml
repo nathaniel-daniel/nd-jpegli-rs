@@ -1,0 +1,10 @@
+[package]
+name = "xtask"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+argh = "0.1.12"
+camino = "1.1.7"
+cargo_metadata = "0.18.1"
