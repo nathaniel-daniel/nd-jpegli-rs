@@ -1,46 +1,46 @@
 mod custom_jpegli;
 
 use crate::custom_jpegli::BASE_DIR;
+use crate::custom_jpegli::HIGHWAY_SRCS;
+use crate::custom_jpegli::INCLUDE_DIR;
+use crate::custom_jpegli::JPEGLI_INCLUDE_DIR;
 use crate::custom_jpegli::JPEGLI_SRCS;
 
 fn main() {
     println!("cargo::rerun-if-changed=wrapper/wrapper.c");
 
-    const SRC: &[&str] = &[
-        "fake-jpegli/hwy/aligned_allocator.cc",
-        "fake-jpegli/hwy/per_target.cc",
-        "fake-jpegli/hwy/print.cc",
-        "fake-jpegli/hwy/targets.cc",
-    ];
+    let current_dir = std::env::current_dir().expect("failed to get current_dir");
+
+    // Build highway
     let mut build = cc::Build::new();
-    build
-        .include("custom-jpegli/include")
-        .include("custom-jpegli/include/jpegli")
-        .include("custom-jpegli");
-    for src in SRC {
+    build.include(BASE_DIR).include(INCLUDE_DIR);
+    for src in HIGHWAY_SRCS {
         build.file(src);
     }
+    build.compile("hwy");
+
+    // Build jpegli
+    let mut build = cc::Build::new();
+    build
+        .include(BASE_DIR)
+        .include(INCLUDE_DIR)
+        .include(JPEGLI_INCLUDE_DIR);
     for src in JPEGLI_SRCS {
         build.file(src);
     }
     build.compile("jpegli-static");
 
+    // Compile wrapper
     let mut build = cc::Build::new();
     build
-        //.include("libjxl")
-        //.include("libjxl/third_party/libjpeg-turbo")
-        // .include(&jpegli_include_path)
-        .include("fake-jpegli/include")
-        .include("fake-jpegli/include/libjpeg-turbo")
+        .include(INCLUDE_DIR)
+        .include(JPEGLI_INCLUDE_DIR)
         .file("wrapper/wrapper.c");
     build.compile("nd-jpegli");
 
-    // println!("cargo::rustc-link-lib=jpegli-static");
-    // println!("cargo::rustc-link-lib=hwy");
-
+    // Link c++ stdlib
     #[cfg(any(target_os = "macos", target_os = "ios", target_os = "freebsd"))]
     println!("cargo::rustc-link-lib=c++");
-
     #[cfg(not(any(
         target_os = "macos",
         target_os = "ios",
@@ -49,23 +49,17 @@ fn main() {
     )))]
     println!("cargo::rustc-link-lib=stdc++");
 
-    let current_dir = std::env::current_dir().expect("failed to get current_dir");
+    // Setup Metadata
     println!(
-        "cargo::metadata=include_libjxl={}",
-        current_dir.join("libjxl").display()
+        "cargo::metadata=include={}",
+        current_dir.join(INCLUDE_DIR).display()
     );
     println!(
-        "cargo::metadata=include_libjpeg_turbo={}",
-        current_dir
-            .join("libjxl/third_party/libjpeg-turbo")
-            .display()
+        "cargo::metadata=include_jpegli={}",
+        current_dir.join(JPEGLI_INCLUDE_DIR).display()
     );
-    //println!(
-    //    "cargo::metadata=include_jpegli={}",
-    //   jpegli_include_path.display()
-    //);
     println!(
-        "cargo::metadata=include_nd_jpegli_wrapper={}",
+        "cargo::metadata=include_nd_jpegli={}",
         current_dir.join("wrapper").display()
     );
 }
