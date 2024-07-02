@@ -3,10 +3,10 @@
 
 #define INPUT_BUF_SIZE 4096
 
-extern char *nd_jpegli_rust_src_init_source_rs(j_compress_ptr cinfo);
-extern char* nd_jpegli_rust_src_fill_input_buffer_rs(j_compress_ptr cinfo);
+extern char *nd_jpegli_rust_src_init_source_rs(j_decompress_ptr cinfo);
+extern char *nd_jpegli_rust_src_fill_input_buffer_rs(j_decompress_ptr cinfo);
 
-void nd_jpegli_rust_src_init_source_c(j_compress_ptr cinfo) {
+void nd_jpegli_rust_src_init_source_c(j_decompress_ptr cinfo) {
   nd_jpegli_error_mgr_ptr error_mgr = (nd_jpegli_error_mgr_ptr)cinfo->err;
 
   char *ret = nd_jpegli_rust_src_init_source_rs(cinfo);
@@ -17,16 +17,21 @@ void nd_jpegli_rust_src_init_source_c(j_compress_ptr cinfo) {
   }
 }
 
-boolean nd_jpegli_rust_src_fill_input_buffer_c(j_compress_ptr cinfo) {
+boolean nd_jpegli_rust_src_fill_input_buffer_c(j_decompress_ptr cinfo) {
   nd_jpegli_error_mgr_ptr error_mgr = (nd_jpegli_error_mgr_ptr)cinfo->err;
 
   char *ret = nd_jpegli_rust_src_fill_input_buffer_rs(cinfo);
 
+  if (ret != NULL) {
+    error_mgr->err_str = ret;
+    longjmp(error_mgr->setjmp_buffer, 1);
+  }
+
   return TRUE;
 }
 
-void nd_jpegli_rust_src_skip_input_data_c(j_decompress_ptr cinfo, long num_bytes)
-{
+void nd_jpegli_rust_src_skip_input_data_c(j_decompress_ptr cinfo,
+                                          long num_bytes) {
   struct jpeg_source_mgr *src = cinfo->src;
 
   /* Just a dumb implementation for now.  Could use fseek() except
@@ -36,7 +41,7 @@ void nd_jpegli_rust_src_skip_input_data_c(j_decompress_ptr cinfo, long num_bytes
   if (num_bytes > 0) {
     while (num_bytes > (long)src->bytes_in_buffer) {
       num_bytes -= (long)src->bytes_in_buffer;
-      (void)(*src->fill_input_buffer) (cinfo);
+      (void)(*src->fill_input_buffer)(cinfo);
       /* note we assume that fill_input_buffer will never return FALSE,
        * so suspension need not be handled.
        */
