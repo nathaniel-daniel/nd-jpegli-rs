@@ -11,6 +11,7 @@ struct Options {
 #[argh(subcommand)]
 enum Subcommand {
     GenerateCustomJpegli(self::commands::generate_custom_jpegli::Options),
+    GenerateBindings(self::commands::generate_bindings::Options),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -20,6 +21,9 @@ fn main() -> anyhow::Result<()> {
     match options.subcommand {
         Subcommand::GenerateCustomJpegli(options) => {
             self::commands::generate_custom_jpegli::exec(metadata, options)
+        }
+        Subcommand::GenerateBindings(options) => {
+            self::commands::generate_bindings::exec(metadata, options)
         }
     }
 }
