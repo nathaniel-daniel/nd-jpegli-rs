@@ -156,13 +156,13 @@ impl Expr {
 }
 
 /// Parse a gni expr.
-fn parse_gni_expr<'a>(tokens_iter: &mut std::vec::IntoIter<Token>) -> anyhow::Result<Expr> {
+fn parse_gni_expr(tokens_iter: &mut std::vec::IntoIter<Token>) -> anyhow::Result<Expr> {
     let token = tokens_iter.next().context("missing token")?;
     match token {
         Token::LeftBracket => {
             let mut list = Vec::new();
             loop {
-                let next_token = tokens_iter.as_slice().get(0).context("missing token")?;
+                let next_token = tokens_iter.as_slice().first().context("missing token")?;
                 if next_token == &Token::RightBracket {
                     let _ = tokens_iter.next().is_some();
                     break;
@@ -171,7 +171,7 @@ fn parse_gni_expr<'a>(tokens_iter: &mut std::vec::IntoIter<Token>) -> anyhow::Re
                 let expr = parse_gni_expr(tokens_iter)?;
                 list.push(expr);
 
-                let next_token = tokens_iter.as_slice().get(0).context("missing token")?;
+                let next_token = tokens_iter.as_slice().first().context("missing token")?;
                 if next_token == &Token::RightBracket {
                     let _ = tokens_iter.next().is_some();
                     break;
@@ -189,7 +189,7 @@ fn parse_gni_expr<'a>(tokens_iter: &mut std::vec::IntoIter<Token>) -> anyhow::Re
 
             let mut args = Vec::new();
             loop {
-                let next_token = tokens_iter.as_slice().get(0).context("missing token")?;
+                let next_token = tokens_iter.as_slice().first().context("missing token")?;
                 if next_token == &Token::RightParenthesis {
                     let _ = tokens_iter.next().is_some();
                     break;
@@ -198,7 +198,7 @@ fn parse_gni_expr<'a>(tokens_iter: &mut std::vec::IntoIter<Token>) -> anyhow::Re
                 let expr = parse_gni_expr(tokens_iter)?;
                 args.push(expr);
 
-                let next_token = tokens_iter.as_slice().get(0).context("missing token")?;
+                let next_token = tokens_iter.as_slice().first().context("missing token")?;
                 if next_token == &Token::RightParenthesis {
                     let _ = tokens_iter.next().is_some();
                     break;

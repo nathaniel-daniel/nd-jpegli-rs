@@ -11,11 +11,13 @@ fn main() {
 
     let current_dir = std::env::current_dir().expect("failed to get current_dir");
 
+    let warn_third_party_code = true;
+
     // Build highway
     let mut build = cc::Build::new();
     build
         .cpp(true)
-        .cargo_warnings(false)
+        .cargo_warnings(warn_third_party_code)
         .include(BASE_DIR)
         .include(INCLUDE_DIR);
     for src in HIGHWAY_SRCS {
@@ -27,7 +29,7 @@ fn main() {
     let mut build = cc::Build::new();
     build
         .cpp(true)
-        .cargo_warnings(false)
+        .cargo_warnings(warn_third_party_code)
         .include(BASE_DIR)
         .include(INCLUDE_DIR)
         .include(JPEGLI_INCLUDE_DIR);
