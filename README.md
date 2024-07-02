@@ -10,8 +10,25 @@ In particular, error codes and the error message table have been removed.
 
 ## Custom Jpegli Libraries
 This library currently does NOT support custom Jpegli libraries.
-This is because the `boolean` data type varies per platform,
-and the workarounds in place for the Rust bindings will break if used with an external library.
+
+## Code Generation
+
+### Custom Jpegli
+This library preprocesses the jpegli source code and bundles it to avoid depending on cmake, 
+to reduce the package size, and to make cross-compliation easier.
+This generated source directory can be found at `nd-jpegli-sys/custom-jpegli`.
+This directory can be regenerated this the following command:
+```bash
+cargo xtask generate-custom-jpegli
+```
+
+### Bindgen
+This library uses bindgen to vendor bindings for the low-level c api.
+These bindings can be regenerated with the following commands:
+```bash
+cargo xtask generate-custom-jpegli
+cargo xtask generate-bindings
+```
 
 ## References
  * https://github.com/libjpeg-turbo/libjpeg-turbo/blob/51d021bf0168ee2d6ad79f70248a88b7f57156d0/libjpeg.txt
@@ -25,4 +42,13 @@ and the workarounds in place for the Rust bindings will break if used with an ex
  * https://stackoverflow.com/questions/45135/why-does-the-order-in-which-libraries-are-linked-sometimes-cause-errors-in-gcc
  * https://stackoverflow.com/questions/3735804/undefined-reference-to-operator-new
  * https://stackoverflow.com/questions/45047508/error-unknown-type-name-constexpr-during-make-in-mac-os-x
+ 
+## License
+Licensed under either of the 3-Clause BSD License (LICENSE or https://opensource.org/license/bsd-3-clause)
+
+## Contributing
+Unless you explicitly state otherwise, 
+any contribution intentionally submitted for inclusion in the work by you, 
+shall be licensed as above, 
+without any additional terms or conditions.
  
