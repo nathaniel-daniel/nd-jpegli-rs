@@ -12,11 +12,14 @@ fn main() {
     let current_dir = std::env::current_dir().expect("failed to get current_dir");
 
     let warn_third_party_code = true;
+    // MSVC does not support c++11
+    let cpp_std_ver = "c++14";
 
     // Build highway
     let mut build = cc::Build::new();
     build
         .cpp(true)
+        .std(cpp_std_ver)
         .cargo_warnings(warn_third_party_code)
         .include(BASE_DIR)
         .include(INCLUDE_DIR);
@@ -29,6 +32,7 @@ fn main() {
     let mut build = cc::Build::new();
     build
         .cpp(true)
+        .std(cpp_std_ver)
         .cargo_warnings(warn_third_party_code)
         .include(BASE_DIR)
         .include(INCLUDE_DIR)
