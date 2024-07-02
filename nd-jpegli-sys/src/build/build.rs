@@ -14,6 +14,7 @@ fn main() {
     // Build highway
     let mut build = cc::Build::new();
     build
+        .cpp(true)
         .cargo_warnings(false)
         .include(BASE_DIR)
         .include(INCLUDE_DIR);
@@ -25,6 +26,7 @@ fn main() {
     // Build jpegli
     let mut build = cc::Build::new();
     build
+        .cpp(true)
         .cargo_warnings(false)
         .include(BASE_DIR)
         .include(INCLUDE_DIR)
@@ -41,17 +43,6 @@ fn main() {
         .include(JPEGLI_INCLUDE_DIR)
         .file("wrapper/wrapper.c");
     build.compile("nd-jpegli");
-
-    // Link c++ stdlib
-    #[cfg(any(target_os = "macos", target_os = "ios", target_os = "freebsd"))]
-    println!("cargo::rustc-link-lib=c++");
-    #[cfg(not(any(
-        target_os = "macos",
-        target_os = "ios",
-        target_os = "freebsd",
-        target_env = "msvc"
-    )))]
-    println!("cargo::rustc-link-lib=stdc++");
 
     // Setup Metadata
     println!(
