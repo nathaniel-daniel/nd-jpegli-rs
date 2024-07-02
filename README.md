@@ -17,16 +17,16 @@ This library currently does NOT support custom Jpegli libraries.
 This library preprocesses the jpegli source code and bundles it to avoid depending on cmake, 
 to reduce the package size, and to make cross-compliation easier.
 This generated source directory can be found at `nd-jpegli-sys/custom-jpegli`.
-This directory can be regenerated this the following command:
+This directory can be regenerated with the following command:
 ```bash
 cargo xtask generate-custom-jpegli
 ```
 
 ### Bindgen
 This library uses bindgen to vendor bindings for the low-level c api.
-These bindings can be regenerated with the following commands:
+These bindings can be regenerated with the following command.
+Be aware that you need to have generated the `custom-jpegli` data beforehand:
 ```bash
-cargo xtask generate-custom-jpegli
 cargo xtask generate-bindings
 ```
 
