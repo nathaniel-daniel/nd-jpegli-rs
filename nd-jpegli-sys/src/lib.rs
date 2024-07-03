@@ -10,6 +10,7 @@ pub(crate) mod bindings;
 pub use self::bindings::boolean;
 pub use self::bindings::j_compress_ptr;
 pub use self::bindings::j_decompress_ptr;
+pub use self::bindings::jpeg_component_info as jpegli_component_info;
 pub use self::bindings::jpeg_compress_struct as jpegli_compress_struct;
 pub use self::bindings::jpeg_decompress_struct as jpegli_decompress_struct;
 pub use self::bindings::jpeg_error_mgr as jpegli_error_mgr;
@@ -63,6 +64,26 @@ extern "C" {
     /// Otherwise, returns a pointer to a NUL-terminated c-string.
     /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
     pub fn nd_jpegli_set_defaults(ctx: j_compress_ptr) -> *mut c_char;
+
+    /// Set the compression quality.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_set_quality(
+        ctx: j_compress_ptr,
+        quality: c_int,
+        force_baseline: boolean,
+    ) -> *mut c_char;
+
+    /// Set xyb mode.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_set_xyb_mode(ctx: j_compress_ptr) -> *mut c_char;
 
     /// Start compressing.
     ///
@@ -244,11 +265,10 @@ mod test {
 
     #[test]
     fn compress() {
+        let quality = 90;
         let image = image::open("Plush_bunny_with_headphones.jpg").expect("failed to read image");
         let image = image.as_rgb8().expect("failed to convert to rgb8");
         let image_buffer = image.clone().into_vec();
-
-        let mut out_buffer = Vec::with_capacity(1_000_000);
 
         unsafe {
             let mut ctx: MaybeUninit<jpegli_compress_struct> = std::mem::MaybeUninit::zeroed();
@@ -257,8 +277,8 @@ mod test {
 
             let mut ctx = ctx.assume_init();
 
-            let mut out_buffer_ptr = out_buffer.as_mut_ptr();
-            let mut out_buffer_len = out_buffer.capacity().try_into().expect("buffer too large");
+            let mut out_buffer_ptr = std::ptr::null_mut();
+            let mut out_buffer_len = 0;
             let err = nd_jpegli_mem_dest(&mut ctx, &mut out_buffer_ptr, &mut out_buffer_len);
             assert!(err.is_null());
 
@@ -270,6 +290,26 @@ mod test {
             // Set default parameters
             let err = nd_jpegli_set_defaults(&mut ctx);
             assert!(err.is_null());
+
+            let err = nd_jpegli_set_quality(&mut ctx, quality, TRUE);
+            assert!(err.is_null());
+
+            ctx.optimize_coding = TRUE;
+
+            //let err = nd_jpegli_set_xyb_mode(&mut ctx);
+            //assert!(err.is_null());
+
+            /*
+            // Set 4:2:0 chroma subsampling (image-rs will set this for qualities less than 90).
+            {
+                (*ctx.comp_info).h_samp_factor = 2;
+                (*ctx.comp_info).v_samp_factor = 2;
+                (*ctx.comp_info.offset(1)).h_samp_factor = 1;
+                (*ctx.comp_info.offset(1)).v_samp_factor = 1;
+                (*ctx.comp_info.offset(2)).h_samp_factor = 1;
+                (*ctx.comp_info.offset(2)).v_samp_factor = 1;
+            }
+            */
 
             let err = nd_jpegli_start_compress(&mut ctx);
             assert!(err.is_null());
@@ -297,11 +337,22 @@ mod test {
             assert!(err.is_null());
 
             assert!(out_buffer_len != 0);
-            out_buffer.set_len(out_buffer_len.try_into().unwrap());
+            let out_buffer =
+                std::slice::from_raw_parts(out_buffer_ptr, out_buffer_len.try_into().unwrap());
+            std::fs::write("test-compress-jpegli.jpeg", out_buffer).expect("failed to write");
 
             nd_jpegli_destroy_compress(&mut ctx);
         }
 
-        std::fs::write("test-compress.jpeg", out_buffer).expect("failed to write");
+        let out_file = std::fs::File::create("test-compress-image-rs.jpeg").unwrap();
+        let encoder = jpeg_encoder::Encoder::new(out_file, quality.try_into().unwrap());
+        encoder
+            .encode(
+                &image_buffer,
+                image.width().try_into().unwrap(),
+                image.height().try_into().unwrap(),
+                jpeg_encoder::ColorType::Rgb,
+            )
+            .unwrap();
     }
 }

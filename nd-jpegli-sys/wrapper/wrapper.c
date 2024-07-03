@@ -51,11 +51,30 @@ char *nd_jpegli_mem_dest(j_compress_ptr cinfo, unsigned char **outbuffer,
   return NULL;
 }
 
-/// Destroy a compress context.
+/// Set default compress options.
 char *nd_jpegli_set_defaults(j_compress_ptr cinfo) {
   SETUP_ERROR_HANDLING(cinfo);
 
   jpegli_set_defaults(cinfo);
+
+  return NULL;
+}
+
+/// Set the compression quality.
+char *nd_jpegli_set_quality(j_compress_ptr cinfo, int quality,
+                            boolean force_baseline) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  jpegli_set_quality(cinfo, quality, force_baseline);
+
+  return NULL;
+}
+
+/// Set xyb mode.
+char *nd_jpegli_set_xyb_mode(j_compress_ptr cinfo) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  jpegli_set_xyb_mode(cinfo);
 
   return NULL;
 }
