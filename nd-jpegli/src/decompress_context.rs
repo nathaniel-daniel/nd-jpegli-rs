@@ -84,7 +84,8 @@ enum State {
 /// A context for decompression.
 #[repr(C)]
 pub struct DecompressContext<S> {
-    ctx: jpegli_decompress_struct,
+    // Unconfirmed, but libjpeg docs seem to suggest a jpegli_decompress_struct can't be moved.
+    ctx: Box<jpegli_decompress_struct>,
     state: State,
     source: PhantomData<Box<S>>,
 }
@@ -105,7 +106,7 @@ where
                 return Err(err_str.into());
             }
 
-            let mut ctx = ctx.assume_init();
+            let mut ctx = Box::new(ctx.assume_init());
             let client_data = Box::new(ClientData {
                 source: Box::new(source),
                 source_buffer: vec![0; 4096],
@@ -128,7 +129,7 @@ where
 
         // Setup Source
         unsafe {
-            let err_str = nd_jpegli_rust_src(&mut ctx.ctx);
+            let err_str = nd_jpegli_rust_src(&mut *ctx.ctx);
             let err_str = ErrorString::from_ptr(err_str);
             if let Some(err_str) = err_str {
                 return Err(err_str.into());
@@ -146,7 +147,7 @@ where
 
         let mut ret = JPEGLI_HEADER_OK;
         unsafe {
-            let err_str = nd_jpegli_read_header(&mut self.ctx, &mut ret);
+            let err_str = nd_jpegli_read_header(&mut *self.ctx, &mut ret);
             let err_str = ErrorString::from_ptr(err_str);
             if let Some(err_str) = err_str {
                 self.state = State::Error;
@@ -173,7 +174,7 @@ where
 
         let mut ret = FALSE;
         unsafe {
-            let err_str = nd_jpegli_start_decompress(&mut self.ctx, &mut ret);
+            let err_str = nd_jpegli_start_decompress(&mut *self.ctx, &mut ret);
             let err_str = ErrorString::from_ptr(err_str);
             if let Some(err_str) = err_str {
                 self.state = State::Error;
@@ -218,7 +219,7 @@ where
         let mut scanlines_read = 0;
         unsafe {
             let err_str = nd_jpegli_read_scanlines(
-                &mut self.ctx,
+                &mut *self.ctx,
                 scanlines_arg.as_mut_ptr(),
                 num_scanlines,
                 &mut scanlines_read,
@@ -361,7 +362,7 @@ impl<S> Drop for DecompressContext<S> {
                 drop(client_data);
             }
 
-            nd_jpegli_destroy_decompress(&mut self.ctx);
+            nd_jpegli_destroy_decompress(&mut *self.ctx);
         }
     }
 }

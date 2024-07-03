@@ -22,6 +22,7 @@ pub fn exec(metadata: cargo_metadata::Metadata, _options: Options) -> anyhow::Re
     let bindings = bindgen::Builder::default()
         .header(nd_jpegli_sys_dir.join("bindgen-wrapper.h"))
         .allowlist_type("jpeg_decompress_struct")
+        .allowlist_type("jpeg_compress_struct")
         .allowlist_var("JPEG_(SUSPENDED|HEADER_OK|HEADER_TABLES_ONLY)")
         .newtype_enum("J_COLOR_SPACE")
         .newtype_enum("J_DCT_METHOD")

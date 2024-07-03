@@ -8,7 +8,10 @@
 pub(crate) mod bindings;
 
 pub use self::bindings::boolean;
+pub use self::bindings::j_compress_ptr;
 pub use self::bindings::j_decompress_ptr;
+pub use self::bindings::jpeg_component_info as jpegli_component_info;
+pub use self::bindings::jpeg_compress_struct as jpegli_compress_struct;
 pub use self::bindings::jpeg_decompress_struct as jpegli_decompress_struct;
 pub use self::bindings::jpeg_error_mgr as jpegli_error_mgr;
 pub use self::bindings::jpeg_error_mgr__bindgen_ty_1 as jpegli_error_mgr_msg_parm;
@@ -32,6 +35,88 @@ pub const FALSE: boolean = 0;
 pub const TRUE: boolean = 1;
 
 extern "C" {
+    /// Initialize a new compress context.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_create_compress(ctx: j_compress_ptr) -> *mut c_char;
+
+    /// Setup a compress context to use the a buffer as a file destination.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_mem_dest(
+        ctx: j_compress_ptr,
+        buffer: *mut *mut u8,
+        buffer_len: *mut c_ulong,
+    ) -> *mut c_char;
+
+    /// Set default parameters for a compress operation.
+    ///
+    /// Needs at least in_color_space to be specified beforehand.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_set_defaults(ctx: j_compress_ptr) -> *mut c_char;
+
+    /// Set the compression quality.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_set_quality(
+        ctx: j_compress_ptr,
+        quality: c_int,
+        force_baseline: boolean,
+    ) -> *mut c_char;
+
+    /// Set xyb mode.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_set_xyb_mode(ctx: j_compress_ptr) -> *mut c_char;
+
+    /// Start compressing.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_start_compress(ctx: j_compress_ptr) -> *mut c_char;
+
+    /// Write scanlines to a compress context.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_write_scanlines(
+        ctx: j_compress_ptr,
+        scanlines: JSAMPARRAY,
+        num_lines: JDIMENSION,
+        ret: *mut JDIMENSION,
+    ) -> *mut c_char;
+
+    /// Finish compressing.
+    ///
+    /// # Returns
+    /// If successful, returns NULL.
+    /// Otherwise, returns a pointer to a NUL-terminated c-string.
+    /// This c-string is threadsafe, and must be freed with `nd_jpegli_free_err_str`.
+    pub fn nd_jpegli_finish_compress(ctx: j_compress_ptr) -> *mut c_char;
+
+    /// Destroy a compress context.
+    pub fn nd_jpegli_destroy_compress(ctx: j_compress_ptr);
+
     /// Initialize a new decompress context.
     ///
     /// # Returns
@@ -176,5 +261,98 @@ mod test {
 
             nd_jpegli_destroy_decompress(&mut ctx);
         }
+    }
+
+    #[test]
+    fn compress() {
+        let quality = 90;
+        let image = image::open("Plush_bunny_with_headphones.jpg").expect("failed to read image");
+        let image = image.as_rgb8().expect("failed to convert to rgb8");
+        let image_buffer = image.clone().into_vec();
+
+        unsafe {
+            let mut ctx: MaybeUninit<jpegli_compress_struct> = std::mem::MaybeUninit::zeroed();
+            let err = nd_jpegli_create_compress(ctx.as_mut_ptr());
+            assert!(err.is_null());
+
+            let mut ctx = ctx.assume_init();
+
+            let mut out_buffer_ptr = std::ptr::null_mut();
+            let mut out_buffer_len = 0;
+            let err = nd_jpegli_mem_dest(&mut ctx, &mut out_buffer_ptr, &mut out_buffer_len);
+            assert!(err.is_null());
+
+            ctx.image_width = image.width();
+            ctx.image_height = image.height();
+            ctx.input_components = 3;
+            ctx.in_color_space = J_COLOR_SPACE::JCS_RGB;
+
+            // Set default parameters
+            let err = nd_jpegli_set_defaults(&mut ctx);
+            assert!(err.is_null());
+
+            let err = nd_jpegli_set_quality(&mut ctx, quality, TRUE);
+            assert!(err.is_null());
+
+            ctx.optimize_coding = TRUE;
+
+            //let err = nd_jpegli_set_xyb_mode(&mut ctx);
+            //assert!(err.is_null());
+
+            /*
+            // Set 4:2:0 chroma subsampling (image-rs will set this for qualities less than 90).
+            {
+                (*ctx.comp_info).h_samp_factor = 2;
+                (*ctx.comp_info).v_samp_factor = 2;
+                (*ctx.comp_info.offset(1)).h_samp_factor = 1;
+                (*ctx.comp_info.offset(1)).v_samp_factor = 1;
+                (*ctx.comp_info.offset(2)).h_samp_factor = 1;
+                (*ctx.comp_info.offset(2)).v_samp_factor = 1;
+            }
+            */
+
+            let err = nd_jpegli_start_compress(&mut ctx);
+            assert!(err.is_null());
+
+            let row_stride = ctx.image_width * 3;
+            let row_stride_usize = usize::try_from(row_stride).unwrap();
+            while ctx.next_scanline < ctx.image_height {
+                let mut num_scanlines_written = 0;
+                let scanline_start = usize::try_from(ctx.next_scanline).unwrap() * row_stride_usize;
+                let scanline_end = scanline_start + row_stride_usize;
+
+                let scanline = &image_buffer[scanline_start..scanline_end];
+                let mut scanline_ptr = scanline.as_ptr() as *mut u8;
+                let err = nd_jpegli_write_scanlines(
+                    &mut ctx,
+                    &mut scanline_ptr,
+                    1,
+                    &mut num_scanlines_written,
+                );
+                assert!(err.is_null());
+                assert!(num_scanlines_written == 1);
+            }
+
+            let err = nd_jpegli_finish_compress(&mut ctx);
+            assert!(err.is_null());
+
+            assert!(out_buffer_len != 0);
+            let out_buffer =
+                std::slice::from_raw_parts(out_buffer_ptr, out_buffer_len.try_into().unwrap());
+            std::fs::write("test-compress-jpegli.jpeg", out_buffer).expect("failed to write");
+
+            nd_jpegli_destroy_compress(&mut ctx);
+        }
+
+        let out_file = std::fs::File::create("test-compress-image-rs.jpeg").unwrap();
+        let encoder = jpeg_encoder::Encoder::new(out_file, quality.try_into().unwrap());
+        encoder
+            .encode(
+                &image_buffer,
+                image.width().try_into().unwrap(),
+                image.height().try_into().unwrap(),
+                jpeg_encoder::ColorType::Rgb,
+            )
+            .unwrap();
     }
 }
