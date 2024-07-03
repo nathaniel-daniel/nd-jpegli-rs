@@ -54,6 +54,16 @@ pub struct jpeg_component_info {
     pub quant_table: *mut JQUANT_TBL,
     pub dct_table: *mut ::std::os::raw::c_void,
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_scan_info {
+    pub comps_in_scan: ::std::os::raw::c_int,
+    pub component_index: [::std::os::raw::c_int; 4usize],
+    pub Ss: ::std::os::raw::c_int,
+    pub Se: ::std::os::raw::c_int,
+    pub Ah: ::std::os::raw::c_int,
+    pub Al: ::std::os::raw::c_int,
+}
 pub type jpeg_saved_marker_ptr = *mut jpeg_marker_struct;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -117,7 +127,7 @@ impl J_COLOR_SPACE {
 }
 #[repr(transparent)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub struct J_COLOR_SPACE(pub ::std::os::raw::c_int);
+pub struct J_COLOR_SPACE(pub ::std::os::raw::c_uint);
 impl J_DCT_METHOD {
     pub const JDCT_ISLOW: J_DCT_METHOD = J_DCT_METHOD(0);
 }
@@ -129,11 +139,11 @@ impl J_DCT_METHOD {
 }
 #[repr(transparent)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub struct J_DCT_METHOD(pub ::std::os::raw::c_int);
+pub struct J_DCT_METHOD(pub ::std::os::raw::c_uint);
 pub const J_DITHER_MODE_JDITHER_NONE: J_DITHER_MODE = 0;
 pub const J_DITHER_MODE_JDITHER_ORDERED: J_DITHER_MODE = 1;
 pub const J_DITHER_MODE_JDITHER_FS: J_DITHER_MODE = 2;
-pub type J_DITHER_MODE = ::std::os::raw::c_int;
+pub type J_DITHER_MODE = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct jpeg_common_struct {
@@ -145,7 +155,88 @@ pub struct jpeg_common_struct {
     pub global_state: ::std::os::raw::c_int,
 }
 pub type j_common_ptr = *mut jpeg_common_struct;
+pub type j_compress_ptr = *mut jpeg_compress_struct;
 pub type j_decompress_ptr = *mut jpeg_decompress_struct;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_compress_struct {
+    pub err: *mut jpeg_error_mgr,
+    pub mem: *mut jpeg_memory_mgr,
+    pub progress: *mut jpeg_progress_mgr,
+    pub client_data: *mut ::std::os::raw::c_void,
+    pub is_decompressor: boolean,
+    pub global_state: ::std::os::raw::c_int,
+    pub dest: *mut jpeg_destination_mgr,
+    pub image_width: JDIMENSION,
+    pub image_height: JDIMENSION,
+    pub input_components: ::std::os::raw::c_int,
+    pub in_color_space: J_COLOR_SPACE,
+    pub input_gamma: f64,
+    pub scale_num: ::std::os::raw::c_uint,
+    pub scale_denom: ::std::os::raw::c_uint,
+    pub jpeg_width: JDIMENSION,
+    pub jpeg_height: JDIMENSION,
+    pub data_precision: ::std::os::raw::c_int,
+    pub num_components: ::std::os::raw::c_int,
+    pub jpeg_color_space: J_COLOR_SPACE,
+    pub comp_info: *mut jpeg_component_info,
+    pub quant_tbl_ptrs: [*mut JQUANT_TBL; 4usize],
+    pub q_scale_factor: [::std::os::raw::c_int; 4usize],
+    pub dc_huff_tbl_ptrs: [*mut JHUFF_TBL; 4usize],
+    pub ac_huff_tbl_ptrs: [*mut JHUFF_TBL; 4usize],
+    pub arith_dc_L: [UINT8; 16usize],
+    pub arith_dc_U: [UINT8; 16usize],
+    pub arith_ac_K: [UINT8; 16usize],
+    pub num_scans: ::std::os::raw::c_int,
+    pub scan_info: *const jpeg_scan_info,
+    pub raw_data_in: boolean,
+    pub arith_code: boolean,
+    pub optimize_coding: boolean,
+    pub CCIR601_sampling: boolean,
+    pub do_fancy_downsampling: boolean,
+    pub smoothing_factor: ::std::os::raw::c_int,
+    pub dct_method: J_DCT_METHOD,
+    pub restart_interval: ::std::os::raw::c_uint,
+    pub restart_in_rows: ::std::os::raw::c_int,
+    pub write_JFIF_header: boolean,
+    pub JFIF_major_version: UINT8,
+    pub JFIF_minor_version: UINT8,
+    pub density_unit: UINT8,
+    pub X_density: UINT16,
+    pub Y_density: UINT16,
+    pub write_Adobe_marker: boolean,
+    pub next_scanline: JDIMENSION,
+    pub progressive_mode: boolean,
+    pub max_h_samp_factor: ::std::os::raw::c_int,
+    pub max_v_samp_factor: ::std::os::raw::c_int,
+    pub min_DCT_h_scaled_size: ::std::os::raw::c_int,
+    pub min_DCT_v_scaled_size: ::std::os::raw::c_int,
+    pub total_iMCU_rows: JDIMENSION,
+    pub comps_in_scan: ::std::os::raw::c_int,
+    pub cur_comp_info: [*mut jpeg_component_info; 4usize],
+    pub MCUs_per_row: JDIMENSION,
+    pub MCU_rows_in_scan: JDIMENSION,
+    pub blocks_in_MCU: ::std::os::raw::c_int,
+    pub MCU_membership: [::std::os::raw::c_int; 10usize],
+    pub Ss: ::std::os::raw::c_int,
+    pub Se: ::std::os::raw::c_int,
+    pub Ah: ::std::os::raw::c_int,
+    pub Al: ::std::os::raw::c_int,
+    pub block_size: ::std::os::raw::c_int,
+    pub natural_order: *const ::std::os::raw::c_int,
+    pub lim_Se: ::std::os::raw::c_int,
+    pub master: *mut jpeg_comp_master,
+    pub main: *mut jpeg_c_main_controller,
+    pub prep: *mut jpeg_c_prep_controller,
+    pub coef: *mut jpeg_c_coef_controller,
+    pub marker: *mut jpeg_marker_writer,
+    pub cconvert: *mut jpeg_color_converter,
+    pub downsample: *mut jpeg_downsampler,
+    pub fdct: *mut jpeg_forward_dct,
+    pub entropy: *mut jpeg_entropy_encoder,
+    pub script_space: *mut jpeg_scan_info,
+    pub script_space_size: ::std::os::raw::c_int,
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct jpeg_decompress_struct {
@@ -282,6 +373,16 @@ pub struct jpeg_progress_mgr {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct jpeg_destination_mgr {
+    pub next_output_byte: *mut JOCTET,
+    pub free_in_buffer: usize,
+    pub init_destination: ::std::option::Option<unsafe extern "C" fn(cinfo: j_compress_ptr)>,
+    pub empty_output_buffer:
+        ::std::option::Option<unsafe extern "C" fn(cinfo: j_compress_ptr) -> boolean>,
+    pub term_destination: ::std::option::Option<unsafe extern "C" fn(cinfo: j_compress_ptr)>,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct jpeg_source_mgr {
     pub next_input_byte: *const JOCTET,
     pub bytes_in_buffer: usize,
@@ -386,6 +487,51 @@ pub struct jpeg_memory_mgr {
     pub self_destruct: ::std::option::Option<unsafe extern "C" fn(cinfo: j_common_ptr)>,
     pub max_memory_to_use: ::std::os::raw::c_long,
     pub max_alloc_chunk: ::std::os::raw::c_long,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_comp_master {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_c_main_controller {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_c_prep_controller {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_c_coef_controller {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_marker_writer {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_color_converter {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_downsampler {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_forward_dct {
+    pub _address: u8,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct jpeg_entropy_encoder {
+    pub _address: u8,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

@@ -32,6 +32,67 @@ void error_mgr_emit_message(j_common_ptr cinfo, int msg_level) {
   (void)msg_level;
 }
 
+// Init a compress context.
+char *nd_jpegli_create_compress(j_compress_ptr cinfo) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  jpegli_create_compress(cinfo);
+
+  return NULL;
+}
+
+/// Setup a compress context to use the a buffer as a file destination.
+char *nd_jpegli_mem_dest(j_compress_ptr cinfo, unsigned char **outbuffer,
+                         unsigned long *outsize) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  jpegli_mem_dest(cinfo, outbuffer, outsize);
+
+  return NULL;
+}
+
+/// Destroy a compress context.
+char *nd_jpegli_set_defaults(j_compress_ptr cinfo) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  jpegli_set_defaults(cinfo);
+
+  return NULL;
+}
+
+/// Start compressing.
+char *nd_jpegli_start_compress(j_compress_ptr cinfo) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  jpegli_start_compress(cinfo, TRUE);
+
+  return NULL;
+}
+
+/// Write scanlines.
+char *nd_jpegli_write_scanlines(j_compress_ptr cinfo, JSAMPARRAY scanlines,
+                                JDIMENSION num_lines, JDIMENSION *ret) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  *ret = jpegli_write_scanlines(cinfo, scanlines, num_lines);
+
+  return NULL;
+}
+
+/// Finish compression.
+char *nd_jpegli_finish_compress(j_compress_ptr cinfo) {
+  SETUP_ERROR_HANDLING(cinfo);
+
+  jpegli_finish_compress(cinfo);
+
+  return NULL;
+}
+
+/// Destroy a compress context.
+void nd_jpegli_destroy_compress(j_compress_ptr cinfo) {
+  jpegli_destroy_compress(cinfo);
+}
+
 /// Init a decompress context.
 char *nd_jpegli_create_decompress(j_decompress_ptr cinfo) {
   SETUP_ERROR_HANDLING(cinfo);
