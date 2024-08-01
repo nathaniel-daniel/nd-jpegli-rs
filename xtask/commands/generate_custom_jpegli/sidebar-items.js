@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["copy_rewrite","exec","extract_gni_string_array"],"mod":["cmake_configure_parser","gni_parser"],"struct":["Options"]};
