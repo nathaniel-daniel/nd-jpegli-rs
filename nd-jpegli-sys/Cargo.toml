@@ -7,11 +7,11 @@ links = "jpegli-static"
 license = "BSD-3-Clause"
 
 [dev-dependencies]
-image = { version = "0.25.1", features = [ "jpeg" ], default-features = false }
+image = { version = "0.25.2", features = [ "jpeg" ], default-features = false }
 jpeg-encoder = "0.6.0"
 
 [build-dependencies]
-cc = "1.0.102"
+cc = "1.1.7"
 cmake = "0.1.50"
 
 [features]
