@@ -7,6 +7,6 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.86"
 argh = "0.1.12"
-bindgen = "0.69.4"
-camino = "1.1.7"
+bindgen = "0.70.1"
+camino = "1.1.9"
 cargo_metadata = "0.18.1"
