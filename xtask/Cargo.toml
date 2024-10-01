@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-anyhow = "1.0.86"
+anyhow = "1.0.89"
 argh = "0.1.12"
 bindgen = "0.70.1"
 camino = "1.1.9"
