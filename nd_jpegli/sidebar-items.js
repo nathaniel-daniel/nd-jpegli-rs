@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ColorSpace","Error"],"struct":["DecompressContext","ErrorString","ReadSource"],"trait":["Source"]};
