@@ -10,7 +10,7 @@ nd-jpegli-sys = { path = "../nd-jpegli-sys" }
 smallvec = "1.13.2"
 
 [dev-dependencies]
-image = { version = "0.25.2", features = [ "jpeg" ], default-features = false }
+image = { version = "0.25.4", features = [ "jpeg" ], default-features = false }
 
 [build-dependencies]
-cc = "1.1.23"
+cc = "1.1.31"
